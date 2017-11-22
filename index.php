@@ -8,6 +8,9 @@ $api_key = getenv("OPEN_WEATHER_API"); //Obtiene la variable de entorno que guar
 
 $app = new Silex\Application();
 
+$app->get('/', function() use($app, $api_key) {
+	return "API v1.0 using APPID: $api_key";
+}); 
 
 $app->get('/clima', function() use($app,$api_key) {
 	
@@ -15,10 +18,10 @@ $app->get('/clima', function() use($app,$api_key) {
 	$cliente = new Client();
 	//url para llamar la api de openweathermap.org con id de la Cd. de Córdoba, Ver
 	//(donde yo vivo), mi api Key (appid) y unidad de medida en grados Celsius (metric)
-	$url = "api.openweathermap.org/data/2.5/weather?id=3530240&appid=$api_key&units=metric";
+	$url = "https://api.openweathermap.org/data/2.5/weather?id=3530240&appid=$api_key&units=metric";
 
 	//Llamada get para capturar en $response la respuesta
-	$response = $cliente->get($url);
+	$response = $cliente->request('GET',$url);
 	//Se usa getBody() para obtener la respuesta almacenada en $response
 	$body = $response->getBody();
 
@@ -32,7 +35,17 @@ $app->get('/clima', function() use($app,$api_key) {
 
 	//return $app -> json($arreglo);
 
-	});
+});
+
+//Recibe como parámetros la latitud y longitud de la aplicación en Android
+$app->get('/clima/{lat}/{lon}', function($lat, $lon) use($app, $api_key){
+
+	$cliente = new Client();
+	$url = "https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&APPID=$api_key&units=metric";
+	$response = $cliente->request('GET', $url);
+	$body = $response->getBody();
+	return new Response($body, 200, array("Content-Type" => "application/json"));
+});	
 
 $app->run();
 ?>
